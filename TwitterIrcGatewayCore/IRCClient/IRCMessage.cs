@@ -1,8 +1,10 @@
 // $Id: IRCMessage.cs 561 2009-04-25 09:10:09Z tomoyo $
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Text;
 using System.Diagnostics;
+using System.Linq;
 
 namespace Misuzilla.Net.Irc
 {
@@ -18,6 +20,8 @@ namespace Misuzilla.Net.Irc
 		private String _command = "";
 		private String _commandParam = "";
 		private String[] _commandParams;
+		private Dictionary<String, String> _tags = new Dictionary<String, String>();
+		private static String SenderProfileImageTag = "constellation.github.io/sender-profile-image";
 		
 		// FIXME: プロパティを作ってサブクラスでオーバーライドする形にしたほうがいいのではないか?
 		protected void
@@ -70,7 +74,24 @@ namespace Misuzilla.Net.Irc
 			get { return _senderNick; }
 			set { _senderNick = value; this.SetPrefix(); }
 		}
-		
+		public String SenderProfileImage
+		{
+			get {
+				String senderProfileImage;
+				if (_tags.TryGetValue(SenderProfileImageTag, out senderProfileImage))
+					return senderProfileImage;
+				return "";
+			}
+			set {
+				if (String.IsNullOrEmpty(value)) {
+					_tags.Remove(SenderProfileImageTag);
+					return;
+				}
+				_tags[SenderProfileImageTag] = value;
+				this.SetPrefix();
+			}
+		}
+
 		public String Prefix
 		{
 			get { return _prefix; }
@@ -129,6 +150,13 @@ namespace Misuzilla.Net.Irc
 		{
 			get {
 				StringBuilder sb = new StringBuilder();
+
+				if (_tags.Count != 0) {
+					sb.Append("@");
+					sb.Append(String.Join(";", _tags.Select(pair => pair.Key + "=" + pair.Value).ToArray()));
+					sb.Append(" ");
+				}
+
 				if (_prefix.Length != 0) {
 					sb.Append(":");
 					sb.Append(_prefix);

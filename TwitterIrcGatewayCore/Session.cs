@@ -1660,6 +1660,7 @@ namespace Misuzilla.Applications.TwitterIrcGateway
             } 
             msg.SenderNick = status.User.ScreenName;
             msg.SenderHost = "twitter@" + Server.ServerName;
+            msg.SenderProfileImage = status.User.ProfileImageUrl;
 
             return msg;
         }
